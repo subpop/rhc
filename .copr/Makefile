@@ -6,15 +6,15 @@ spec ?= $(PWD)
 SOURCEDIR := $(shell rpmbuild -E %_sourcedir)
 SRCRPMDIR := $(shell rpmbuild -E %_srcrpmdir)
 
-srpm: SHORTNAME = $(shell basename $(PWD))
+srpm: SHORTNAME = rhc
 srpm: LONGNAME = $(SHORTNAME)
-srpm: SERVICENAME = "yggdrasil"
+srpm: SERVICENAME = yggdrasil
 srpm: VERSION := $(shell echo $(VERSION) | awk -F. '{printf("%d.%d.%d", $$1, $$2, $$3+1)}')
 srpm: RELEASE = $(shell printf "0.%s.git.%s" $(shell git rev-list $(shell git describe --tags --abbrev=0 --always | tr -d '\n')..HEAD --count | tr -d '\n') $(shell git rev-parse --short HEAD | tr -d '\n'))
 srpm: PKGNAME = $(SHORTNAME)
 
 .PHONY: srpm
-srpm: deps
+srpm:
 	mkdir -p $(SOURCEDIR)
 	mkdir -p $(SRCRPMDIR)
 	mkdir -p $(outdir)
@@ -42,6 +42,5 @@ srpm: deps
 	install -D -m644 $(PKGNAME)-$(VERSION)-$(RELEASE).tar.gz $(SOURCEDIR)
 	rpmbuild -bs $(spec)/rhc.spec
 	install -D -m644 $(SRCRPMDIR)/*.rpm $(outdir)/
+	install -D -m644 $(PKGNAME)-$(VERSION)-$(RELEASE).tar.gz $(outdir)/
 
-deps:
-	dnf install -y golang git rpm-build
