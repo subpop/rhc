@@ -14,7 +14,7 @@ srpm: RELEASE = $(shell printf "0.%s.git.%s" $(shell git rev-list $(shell git de
 srpm: PKGNAME = $(SHORTNAME)
 
 .PHONY: srpm
-srpm:
+srpm: deps
 	mkdir -p $(SOURCEDIR)
 	mkdir -p $(SRCRPMDIR)
 	mkdir -p $(outdir)
@@ -44,3 +44,11 @@ srpm:
 	install -D -m644 $(SRCRPMDIR)/*.rpm $(outdir)/
 	install -D -m644 $(PKGNAME)-$(VERSION)-$(RELEASE).tar.gz $(outdir)/
 
+# This should not be part of Makefile. COPR should provide some
+# way how to install packages required for running
+# make -f .copr/Makefile srpm outdir=./out
+deps:
+	rpm -qa | grep '^golang-[0-9]' \
+	&& rpm -qa | grep '^git-[0-9]' \
+	&& rpm -qa | grep '^rpm-build-[0-9]' \
+	|| dnf install -y golang git rpm-build
