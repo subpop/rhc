@@ -3,7 +3,6 @@ downstream_package_name: rhc
 specfile_path: rhc.spec
 
 srpm_build_deps:
-  - bash-completion
   - gawk
   - git-core
   - golang
@@ -14,11 +13,10 @@ srpm_build_deps:
 
 actions:
   post-upstream-clone:
-    - bash -c "mkdir out"
-    - bash -c "make -f .copr/Makefile srpm outdir=./out"
-    - bash -c "ls -la ./out"
+    - mkdir out
+    - bash -c 'make -f .copr/Makefile srpm outdir=./out'
   get-current-version:
-    - bash -c "awk '/^Version:/ {print $2;}' ./rhc.spec"
+    - awk '/^Version:/ {print $2;}' ./rhc.spec
   create-archive:
     - bash -c 'echo out/rhc-*.tar.*'
   fix-spec-file:
