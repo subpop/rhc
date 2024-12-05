@@ -1,0 +1,28 @@
+name: version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.fedoraproject.org/fedora:latest
+    steps:
+      - run: dnf install --setopt install_weak_deps=False --assumeyes golang git-core meson 'pkgconfig(bash-completion)' 'pkgconfig(yggdrasil)' 'pkgconfig(dbus-1)' 'pkgconfig(systemd)' 'rpm_macro(forgemeta)' jq
+      - uses: actions/checkout@v4
+      # See https://github.com/mesonbuild/meson/pull/13637
+      - run: meson setup -Dvendor=True builddir
+      - uses: mathiasvr/command-output@v2.0.0
+        id: version
+        with:
+          run: meson introspect builddir --projectinfo | jq -r '.version' | awk -F. '{$NF+=1; print $0}' OFS=.
+      - run: git config --global safe.directory "*"
+      - run: meson rewrite kwargs set project / version ${{ steps.version.outputs.stdout }}
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          head: set-version-${{ steps.version.outputs.stdout }}
+          title: "Update version to ${{ steps.version.outputs.stdout }}"
+          branch: set-version-${{ steps.version.outputs.stdout }}
+          commit-message: "build: set version to ${{ steps.version.outputs.stdout }}"
+          
